@@ -218,15 +218,15 @@ public class ThreePrisonersDilemma {
 			 * Once nasty player is found, turn into another nasty player
 			 * If not found, recheck after 10 rounds
 			 */
-			if(n%10 == 0){
+			if(n%10 == 0 && !nasty){
 				double sum = 0;
 				for (int i : oppHistory1)
 					sum += i;
-				if(!nasty && (double)sum/n >= NASTY_THRESHOLD) nasty = true;
+				if((double)sum/n >= NASTY_THRESHOLD) nasty = true;
 				sum = 0;
 				for (int i : oppHistory2)
 					sum += i;
-				if(!nasty && (double)sum/n >= NASTY_THRESHOLD) nasty = true;
+				if((double)sum/n >= NASTY_THRESHOLD) nasty = true;
 			}
 			if(nasty) return 1;
 
