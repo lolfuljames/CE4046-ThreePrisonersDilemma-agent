@@ -13,7 +13,9 @@ public class ThreePrisonersDilemma {
 	 U(DCC) > U(CCC) > U(DDC) > U(CDC) > U(DDD) > U(CDD)
 	 
 	 The payoffs for player 1 are given by the following matrix: */
-	
+	static int wins = 0;
+	static int runnerUp = 0;
+	static int secondRunnerUp = 0;
 	static int[][][] payoff = {  
 		{{6,3},  //payoffs when first and second players cooperate 
 		 {3,0}}, //payoffs when first player coops, second defects
@@ -204,9 +206,6 @@ public class ThreePrisonersDilemma {
 	class tan_JamesCheeMin extends Player {
 		double NASTY_THRESHOLD = 0.7;
 		boolean nasty = false;
-		double myScore;
-		double opp1Score =0;
-		double opp2Score =0;
 		int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
 
 			//Get the initial gold mine
@@ -214,28 +213,20 @@ public class ThreePrisonersDilemma {
 
 			//Someone defects previously in rounds 1-4
 			if (n<=3 && (oppHistory1[n-1] + oppHistory2[n-1]) >= 1) return 1;
-
-			//calculate environment score
-			myScore += payoff[myHistory[n-1]][oppHistory1[n-1]][oppHistory2[n-1]];
-            opp1Score += payoff[oppHistory1[n-1]][oppHistory2[n-1]][myHistory[n-1]];
-            opp2Score += payoff[oppHistory2[n-1]][myHistory[n-1]][oppHistory1[n-1]];
 			
 			/*
 			 * Once nasty player is found, turn into another nasty player
 			 * If not found, recheck after 10 rounds
 			 */
 			if(n%10 == 0){
-				System.out.print("Turn number: " + n +  "oppHistory1: ");
 				double sum = 0;
 				for (int i : oppHistory1)
 					sum += i;
-				if((double)sum/n >= NASTY_THRESHOLD) nasty = true;
-				System.out.print(sum + "oppHistory2: ");
+				if(!nasty && (double)sum/n >= NASTY_THRESHOLD) nasty = true;
 				sum = 0;
 				for (int i : oppHistory2)
 					sum += i;
-				System.out.println(sum);
-				if((double)sum/n >= NASTY_THRESHOLD) nasty = true;
+				if(!nasty && (double)sum/n >= NASTY_THRESHOLD) nasty = true;
 			}
 			if(nasty) return 1;
 
@@ -244,13 +235,8 @@ public class ThreePrisonersDilemma {
 			 */
 			if((oppHistory1[n-1] + oppHistory1[n-1] + myHistory[n-1]) == 1) return 1;
 
-
-			//noone should win me
-
-			if((opp1Score>myScore || opp2Score>myScore) && n>90) return 1;
-
-			// Be a good boy here
-			else return 0;
+			// Cooperate by default
+			return 0;
 		}
 	}
 
@@ -459,13 +445,35 @@ public class ThreePrisonersDilemma {
 		}
 	}
 	
+	class Tideman extends T4TPlayer{
+		int defect_counter = 0;
+		int defect_queue = 0;
+		int restart_turn = 0;
+		int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
+			if(n==0) return 0;
+			if(oppHistory1[n-1] + oppHistory2[n-1] > 0)  {
+				defect_counter++;
+				if(defect_queue == 0) defect_queue = defect_counter;
+				else defect_queue++;
+			}
+			if(defect_queue > 0){
+				defect_queue--;
+				return 1;
+			}
+			if(n - restart_turn > 20 && n <= 90) {
+				defect_counter = 0;
+				restart_turn = n;
+			}
+			return super.selectAction(n, myHistory, oppHistory1, oppHistory2);
+		}
+	}
 	/* In our tournament, each pair of strategies will play one match against each other. 
 	 This procedure simulates a single match and returns the scores. */
 	float[] scoresOfMatch(Player A, Player B, Player C, int rounds) {
 		int[] HistoryA = new int[0], HistoryB = new int[0], HistoryC = new int[0];
 		float ScoreA = 0, ScoreB = 0, ScoreC = 0;
 		boolean verbose = false;
-		System.out.println("Starting match between " + A.name() + ", " + B.name() + " and " + C.name());
+		// System.out.println("Starting match between " + A.name() + ", " + B.name() + " and " + C.name());
 		for (int i=0; i<rounds; i++) {
 			int PlayA = A.selectAction(i, HistoryA, HistoryB, HistoryC);
 			int PlayB = B.selectAction(i, HistoryB, HistoryC, HistoryA);
@@ -499,21 +507,24 @@ public class ThreePrisonersDilemma {
 	 (strategies) in between matches. When you add your own strategy,
 	 you will need to add a new entry to makePlayer, and change numPlayers.*/
 	
-	int numPlayers = 12;
+	int numPlayers = 15;
 	Player makePlayer(int which) {
 		switch (which) {
-		case 0: return new T4TElgin();
-		case 1: return new T4TPlayer();
-		case 2: return new HardProber();
-		case 3: return new GosuTheMinion();
-		case 4: return new tan_JamesCheeMin();
-		case 5: return new HardProber();
-		case 6: return new PM_Low();
+		case 0: return new tan_JamesCheeMin();
+		case 1: return new GosuTheMinion();
+		case 2: return new PM_Low();
+		case 3: return new Bummer();
+		case 4: return new HardProber();
+		case 5: return new Tideman();
+		case 6: return new T4TElgin();
 		case 7: return new T4TPlayerRandom();
-		case 8: return new tan_JamesCheeMin();
-		case 9: return new TianShunKenneth_Teo_Player();
-		case 10: return new TolerantPlayer();
-		case 11: return new NastyPlayer();
+		case 8: return new TianShunKenneth_Teo_Player();
+		case 9: return new TolerantPlayer();
+		case 10: return new NicePlayer();
+		case 11: return new FreakyPlayer();
+		case 12: return new NastyPlayer();
+		case 13: return new RandomPlayer();
+		case 14: return new T4TPlayer();
 		}
 		throw new RuntimeException("Bad argument passed to makePlayer");
 	}
@@ -522,7 +533,13 @@ public class ThreePrisonersDilemma {
 	
 	public static void main (String[] args) {
 		ThreePrisonersDilemma instance = new ThreePrisonersDilemma();
-		instance.runTournament();
+		for(int count = 0; count < 10000; count++){
+			instance.runTournament();
+			if(count%1000 == 0) System.out.println("Currently at round: " + count);
+		}
+		System.out.println("Total wins for James: " + wins);
+		System.out.println("Total 2nd places for James: " + runnerUp);
+		System.out.println("Total 3rd places for James: " + secondRunnerUp);
 	}
 	
 	boolean verbose = false; // set verbose = false if you get too much text output
@@ -563,11 +580,20 @@ public class ThreePrisonersDilemma {
 		
 		// Finally, print out the sorted results.
 		if (verbose) System.out.println();
-		System.out.println("Tournament Results");
-		for (int i=0; i<numPlayers; i++) 
-			System.out.println(makePlayer(sortedOrder[i]).name() + ": " 
-				+ totalScore[sortedOrder[i]] + " points.");
-		
+		// System.out.println("Tournament Results");
+		// for (int i=0; i<numPlayers; i++) 
+		// 	System.out.println(makePlayer(sortedOrder[i]).name() + ": " 
+		// 		+ totalScore[sortedOrder[i]] + " points.");
+
+		if(makePlayer(sortedOrder[0]).name().equals("tan_JamesCheeMin")) {
+			wins++;
+		}
+		if(makePlayer(sortedOrder[1]).name().equals("tan_JamesCheeMin")) {
+			runnerUp++;
+		}
+		if(makePlayer(sortedOrder[2]).name().equals("tan_JamesCheeMin")) {
+			secondRunnerUp++;
+		}
 	} // end of runTournament()
 	
 } // end of class PrisonersDilemma
