@@ -128,7 +128,7 @@ public class ThreePrisonersDilemma {
 		}	
 	}
 
-	class T4TElgin extends Player {
+	class GT4T extends Player {
 		//Picks a random opponent at each play, 
 		//and uses the 'tit-for-tat' strategy against them 
 		int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
@@ -149,7 +149,7 @@ public class ThreePrisonersDilemma {
 		}	
 	}
 
-	class T4TPlayerRandom extends Player {
+	class NaiveProber extends Player {
 		//Picks a random opponent at each play, 
 		//and uses the 'tit-for-tat' strategy against them 
 		int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
@@ -516,8 +516,8 @@ public class ThreePrisonersDilemma {
 		case 3: return new Bummer();
 		case 4: return new HardProber();
 		case 5: return new Tideman();
-		case 6: return new T4TElgin();
-		case 7: return new T4TPlayerRandom();
+		case 6: return new GT4T();
+		case 7: return new NaiveProber();
 		case 8: return new TianShunKenneth_Teo_Player();
 		case 9: return new TolerantPlayer();
 		case 10: return new NicePlayer();
